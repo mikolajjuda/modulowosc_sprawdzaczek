@@ -86,6 +86,7 @@ fn main() {
             .unwrap();
         let mut child_stdin = child.stdin.take().unwrap();
         child_stdin.write_all(test.input.as_bytes()).unwrap();
+        child_stdin.flush().unwrap();
         drop(child_stdin);
 
         let output = child.wait_with_output().unwrap();

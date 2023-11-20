@@ -31,6 +31,7 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 	resp, err := cli.ContainerCreate(ctx, &container.Config{
 		Image:     image,
 		OpenStdin: true,
+		StdinOnce: true,
 		Tty:       false,
 	}, nil, nil, nil, "")
 	if err != nil {
@@ -41,7 +42,8 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 		panic(err)
 	}
 
-	conn, err := cli.ContainerAttach(ctx, resp.ID, types.ContainerAttachOptions{Stream: true, Stdout: true, Stderr: true, Stdin: true})
+	conn, err := cli.ContainerAttach(ctx, resp.ID,
+		types.ContainerAttachOptions{Stream: true, Stdout: true, Stderr: true, Stdin: true})
 	if err != nil {
 		panic(err)
 	}
@@ -51,12 +53,16 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 	if err != nil {
 		panic(err)
 	}
+	_, err = conn.Conn.Write([]byte("\n"))
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Sent submission to judge")
 
 	var container_out bytes.Buffer
 	container_out_buf := bufio.NewWriter(&container_out)
 	go stdcopy.StdCopy(container_out_buf, os.Stderr, conn.Reader)
 
-	fmt.Println("Sent submission to judge")
 	statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
 	select {
 	case err := <-errCh:
@@ -78,6 +84,7 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 	}
 
 	if inspection.State.ExitCode != 0 {
+		fmt.Println(container_out.String())
 		fmt.Println("Judge exited with non-zero exit code")
 	} else {
 		var result map[string]interface{}
@@ -113,6 +120,9 @@ func main() {
 	}
 	if dat["task_type"] == "simple_diff" && dat["lang"] == "cpp" {
 		result := judge("simple_diff_cpp", dat)
+		fmt.Println(result)
+	} else if dat["task_type"] == "custom_portable" {
+		result := judge(dat["image"].(string), dat)
 		fmt.Println(result)
 	} else {
 		fmt.Println("Error: unsupported task type or language")

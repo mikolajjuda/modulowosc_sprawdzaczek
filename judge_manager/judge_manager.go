@@ -38,6 +38,16 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 		panic(err)
 	}
 
+	_, err = cli.ContainerUpdate(ctx, resp.ID, container.UpdateConfig{
+		Resources: container.Resources{
+			Memory:     1024 * 1024 * 1024,
+			MemorySwap: 2 * 1024 * 1024 * 1024,
+			NanoCPUs:   500000000},
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
 		panic(err)
 	}

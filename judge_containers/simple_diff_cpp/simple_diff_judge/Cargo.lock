@@ -137,6 +137,7 @@ name = "simple_diff_judge"
 version = "0.1.0"
 dependencies = [
  "caps",
+ "libc",
  "libseccomp",
  "nix",
  "serde",

@@ -1,0 +1,16 @@
+{
+    "id": 1,
+    "task_type": "simple_diff",
+    "lang": "cpp",
+    "task_data": {
+        "code": "#include <iostream>\n#include <unistd.h>\nint main(){std::cout<<3; fork();}",
+        "tests": [
+            {
+                "input": "3",
+                "output": "3",
+                "time_limit": 0,
+                "memory_limit": 0
+            }
+        ]
+    }
+}

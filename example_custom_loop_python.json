@@ -2,8 +2,7 @@
     "id": 2,
     "task_type": "custom_portable",
     "image": "custom_loop_python",
-    "lang": "python",
     "task_data": {
-        "code": "print('Hello World!')"
+        "code": "n = int(input())\nprint(2*n)"
     }
 }

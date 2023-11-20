@@ -16,9 +16,9 @@ struct TaskData {
 }
 #[derive(Deserialize, Debug)]
 struct Submission {
-    id: u32,
-    task_type: String,
-    lang: String,
+    // _id: u32,
+    // _task_type: String,
+    // _lang: String,
     task_data: TaskData,
 }
 
@@ -79,9 +79,11 @@ fn main() {
         return;
     }
     for test in submission.task_data.tests {
-        let mut child = std::process::Command::new("./submission")
+        let mut child = std::process::Command::new("/judge/bin/supervisor")
+            .arg("/judge/work/submission")
             .stdin(std::process::Stdio::piped())
             .stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped())
             .spawn()
             .unwrap();
         let mut child_stdin = child.stdin.take().unwrap();
@@ -90,8 +92,17 @@ fn main() {
         drop(child_stdin);
 
         let output = child.wait_with_output().unwrap();
+        let output_stderr = String::from_utf8(output.stderr).unwrap();
+        eprint!("{}", output_stderr);
         let output = String::from_utf8(output.stdout).unwrap();
-        let test_result = if output == test.output {
+        let test_result = if output_stderr == "SEC\n" {
+            TestResult {
+                err: "SEC".to_owned(),
+                message: "illegal syscall attempted".to_owned(),
+                score: 0,
+                metrics: Metrics { time: 0, memory: 0 },
+            }
+        } else if output == test.output {
             TestResult {
                 err: "OK".to_owned(),
                 message: "accepted".to_owned(),

@@ -1,0 +1,16 @@
+{
+    "id": 1,
+    "task_type": "simple_diff",
+    "lang": "cpp",
+    "task_data": {
+        "code": "#include <iostream>\nusing namespace std;\n\nint fibonacci(int n){\nif(n<=0)\nreturn 0;\nelse if(n==1 || n==2)\nreturn 1;\nelse\nreturn (fibonacci(n-1)+fibonacci(n-2));\n}\n\nint main() {\ncout << fibonacci(46);\nreturn 0;\n}",
+        "tests": [
+            {
+                "input": "",
+                "output": "1",
+                "time_limit": 0,
+                "memory_limit": 0
+            }
+        ]
+    }
+}

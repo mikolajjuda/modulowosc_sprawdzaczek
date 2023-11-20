@@ -1,0 +1,22 @@
+{
+    "id": 1,
+    "task_type": "simple_diff",
+    "lang": "cpp",
+    "task_data": {
+        "code": "#include <iostream>\nint main(){std::cout<<3;}",
+        "tests": [
+            {
+                "input": "1 2",
+                "output": "3",
+                "time_limit": 0,
+                "memory_limit": 0
+            },
+            {
+                "input": "2 3",
+                "output": "5",
+                "time_limit": 0,
+                "memory_limit": 0
+            }
+        ]
+    }
+}

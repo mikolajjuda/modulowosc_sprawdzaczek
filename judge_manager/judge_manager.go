@@ -66,18 +66,27 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 	case <-statusCh:
 	}
 	fmt.Println("Judge finished")
-
 	container_out_buf.Flush()
+
+	inspection, err := cli.ContainerInspect(ctx, resp.ID)
+	if err != nil {
+		panic(err)
+	}
 
 	if err := cli.ContainerRemove(ctx, resp.ID, types.ContainerRemoveOptions{}); err != nil {
 		panic(err)
 	}
 
-	var result map[string]interface{}
-	if err := json.Unmarshal(container_out.Bytes(), &result); err != nil {
-		panic(err)
+	if inspection.State.ExitCode != 0 {
+		fmt.Println("Judge exited with non-zero exit code")
+	} else {
+		var result map[string]interface{}
+		if err := json.Unmarshal(container_out.Bytes(), &result); err != nil {
+			panic(err)
+		}
+		return result
 	}
-	return result
+	return nil
 }
 
 func main() {

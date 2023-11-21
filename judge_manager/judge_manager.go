@@ -28,22 +28,23 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 	}
 	defer cli.Close()
 
-	resp, err := cli.ContainerCreate(ctx, &container.Config{
-		Image:     image,
-		OpenStdin: true,
-		StdinOnce: true,
-		Tty:       false,
-	}, nil, nil, nil, "")
-	if err != nil {
-		panic(err)
-	}
+	pids_limit := int64(100)
 
-	_, err = cli.ContainerUpdate(ctx, resp.ID, container.UpdateConfig{
-		Resources: container.Resources{
-			Memory:     1024 * 1024 * 1024,
-			MemorySwap: 2 * 1024 * 1024 * 1024,
-			NanoCPUs:   500000000},
-	})
+	resp, err := cli.ContainerCreate(ctx,
+		&container.Config{
+			Image:     image,
+			OpenStdin: true,
+			StdinOnce: true,
+			Tty:       false,
+		},
+		&container.HostConfig{
+			Resources: container.Resources{
+				Memory:     1024 * 1024 * 1024,
+				MemorySwap: 2 * 1024 * 1024 * 1024,
+				NanoCPUs:   500000000,
+				PidsLimit:  &pids_limit,
+			},
+		}, nil, nil, "")
 	if err != nil {
 		panic(err)
 	}

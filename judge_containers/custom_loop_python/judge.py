@@ -16,6 +16,7 @@ feedback = None
 for i in range(10):
     proc = subprocess.run(["python", "submission.py"],
                           capture_output=True, input=value, encoding="utf-8")
+    sys.stderr.write(proc.stderr)
     if proc.returncode != 0:
         feedback = {
             "test_results": [

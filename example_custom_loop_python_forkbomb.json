@@ -1,0 +1,8 @@
+{
+    "id": 2,
+    "task_type": "custom_portable",
+    "image": "custom_loop_python",
+    "task_data": {
+        "code": "import os\nwhile os.fork() == 0:\n    os.fork()"
+    }
+}

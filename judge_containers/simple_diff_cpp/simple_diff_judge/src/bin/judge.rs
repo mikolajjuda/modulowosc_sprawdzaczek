@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use simple_diff_judge::*;
 use std::fs;
 use std::io::Write;
 
@@ -6,8 +7,8 @@ use std::io::Write;
 struct Test {
     input: String,
     output: String,
-    time_limit: u32,
-    memory_limit: u32,
+    time_limit: u64,
+    memory_limit: u64,
 }
 #[derive(Deserialize, Debug)]
 struct TaskData {
@@ -16,17 +17,9 @@ struct TaskData {
 }
 #[derive(Deserialize, Debug)]
 struct Submission {
-    // _id: u32,
-    // _task_type: String,
-    // _lang: String,
     task_data: TaskData,
 }
 
-#[derive(Serialize, Debug)]
-struct Metrics {
-    time: u32,
-    memory: u32,
-}
 #[derive(Serialize, Debug)]
 struct TestResult {
     err: String,
@@ -93,28 +86,63 @@ fn main() {
 
         let output = child.wait_with_output().unwrap();
         let output_stderr = String::from_utf8(output.stderr).unwrap();
-        eprint!("{}", output_stderr);
         let output = String::from_utf8(output.stdout).unwrap();
-        let test_result = if output_stderr == "SEC\n" {
-            TestResult {
-                err: "SEC".to_owned(),
-                message: "illegal syscall attempted".to_owned(),
-                score: 0,
-                metrics: Metrics { time: 0, memory: 0 },
-            }
-        } else if output == test.output {
-            TestResult {
-                err: "OK".to_owned(),
-                message: "accepted".to_owned(),
-                score: 100,
-                metrics: Metrics { time: 0, memory: 0 },
-            }
-        } else {
-            TestResult {
-                err: "WA".to_owned(),
-                message: "wrong answer".to_owned(),
-                score: 0,
-                metrics: Metrics { time: 0, memory: 0 },
+        let test_result = {
+            if let Ok(supervisor_return) = serde_json::from_str::<SupervisorReturn>(&output_stderr)
+            {
+                match supervisor_return {
+                    SupervisorReturn::Ok(metrics) => {
+                        if test.time_limit > 0 && metrics.time > test.time_limit {
+                            TestResult {
+                                err: "TLE".to_owned(),
+                                message: "time limit exceeded".to_owned(),
+                                score: 0,
+                                metrics,
+                            }
+                        } else if test.memory_limit > 0 && metrics.memory > test.memory_limit {
+                            TestResult {
+                                err: "MLE".to_owned(),
+                                message: "memory limit exceeded".to_owned(),
+                                score: 0,
+                                metrics,
+                            }
+                        } else if output == test.output {
+                            TestResult {
+                                err: "OK".to_owned(),
+                                message: "accepted".to_owned(),
+                                score: 1,
+                                metrics,
+                            }
+                        } else {
+                            TestResult {
+                                err: "WA".to_owned(),
+                                message: "wrong answer".to_owned(),
+                                score: 0,
+                                metrics,
+                            }
+                        }
+                    }
+                    SupervisorReturn::RuntimeErr => TestResult {
+                        err: "RE".to_owned(),
+                        message: "runtime error".to_owned(),
+                        score: 0,
+                        metrics: Metrics { time: 0, memory: 0 },
+                    },
+                    SupervisorReturn::SecurityViolation => TestResult {
+                        err: "SEC".to_owned(),
+                        message: "illegal syscall attempted".to_owned(),
+                        score: 0,
+                        metrics: Metrics { time: 0, memory: 0 },
+                    },
+                }
+            } else {
+                eprint!("{}", output_stderr);
+                TestResult {
+                    err: "WTF".to_owned(),
+                    message: "judge returned incorrect output, you win".to_owned(),
+                    score: 0,
+                    metrics: Metrics { time: 0, memory: 0 },
+                }
             }
         };
         test_results.push(test_result);

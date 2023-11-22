@@ -2,6 +2,7 @@ use libseccomp::*;
 use nix::sys::wait::waitpid;
 use nix::sys::{ptrace, resource, signal, wait};
 use nix::unistd::{execv, fork, ForkResult};
+use simple_diff_judge::*;
 use std::env;
 use std::ffi::{CStr, CString};
 
@@ -32,21 +33,31 @@ fn main() {
                 match status {
                     wait::WaitStatus::Exited(_, code) => {
                         if code != 0 {
-                            eprintln!("RTE");
-                            std::process::exit(1);
+                            eprintln!(
+                                "{}",
+                                serde_json::to_string(&SupervisorReturn::RuntimeErr).unwrap()
+                            );
                         } else {
                             let resources =
                                 resource::getrusage(resource::UsageWho::RUSAGE_CHILDREN).unwrap();
                             let time = timeval_to_ms(resources.user_time())
                                 + timeval_to_ms(resources.system_time());
                             let memory = resources.max_rss() as u64 * 1024;
-                            eprintln!("{{ \"time\": {time}, \"memory\": {memory} }}");
+                            let metrics = Metrics { time, memory };
+                            eprintln!(
+                                "{}",
+                                serde_json::to_string(&SupervisorReturn::Ok(metrics)).unwrap()
+                            );
                         }
                         break;
                     }
                     wait::WaitStatus::PtraceEvent(_, _, event) => {
                         if event == ptrace::Event::PTRACE_EVENT_SECCOMP as i32 {
-                            eprintln!("SEC");
+                            eprintln!(
+                                "{}",
+                                serde_json::to_string(&SupervisorReturn::SecurityViolation)
+                                    .unwrap()
+                            );
                             ptrace::kill(child).unwrap();
                             std::process::exit(1);
                         }

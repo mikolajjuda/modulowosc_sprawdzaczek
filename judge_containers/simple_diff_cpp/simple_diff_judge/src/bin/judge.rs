@@ -45,6 +45,8 @@ fn main() {
     let compiler_output = std::process::Command::new("g++")
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
+        .arg("-static")
+        .arg("-O3")
         .arg("-o")
         .arg("submission")
         .arg("submission.cpp")
@@ -128,9 +130,9 @@ fn main() {
                         score: 0,
                         metrics: Metrics { time: 0, memory: 0 },
                     },
-                    SupervisorReturn::SecurityViolation => TestResult {
+                    SupervisorReturn::SecurityViolation { syscall_num } => TestResult {
                         err: "SEC".to_owned(),
-                        message: "illegal syscall attempted".to_owned(),
+                        message: format!("illegal syscall {} attempted", syscall_num),
                         score: 0,
                         metrics: Metrics { time: 0, memory: 0 },
                     },

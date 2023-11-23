@@ -10,5 +10,5 @@ pub struct Metrics {
 pub enum SupervisorReturn {
     Ok(Metrics),
     RuntimeErr,
-    SecurityViolation,
+    SecurityViolation{syscall_num: u64},
 }

@@ -4,7 +4,7 @@ use nix::unistd::{execv, fork, ForkResult};
 use seccompiler::{BpfProgram, SeccompAction, SeccompFilter, SeccompRule};
 use simple_diff_judge::*;
 use std::env;
-use std::ffi::{c_long, CStr, CString};
+use std::ffi::{c_long, CString};
 
 fn empty_rules(syscalls: &[c_long]) -> Vec<(c_long, Vec<SeccompRule>)> {
     syscalls.iter().map(|syscall| (*syscall, vec![])).collect()
@@ -104,7 +104,7 @@ fn main() {
             ptrace::traceme().unwrap();
             signal::raise(signal::Signal::SIGSTOP).unwrap();
             seccompiler::apply_filter(&filter).unwrap();
-            execv(&args.last().unwrap(), &[] as &[&CStr; 0]).unwrap();
+            execv(&args[0], &args[1..]).unwrap();
         }
         Err(_) => {
             panic!("fork failed");

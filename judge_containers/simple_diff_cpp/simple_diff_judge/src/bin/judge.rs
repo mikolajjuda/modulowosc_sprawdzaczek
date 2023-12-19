@@ -131,7 +131,7 @@ fn main() {
                         metrics: Metrics { time: 0, memory: 0 },
                     },
                     SupervisorReturn::SecurityViolation { syscall_num } => TestResult {
-                        err: "SEC".to_owned(),
+                        err: "RV".to_owned(),
                         message: format!("illegal syscall {} attempted", syscall_num),
                         score: 0,
                         metrics: Metrics { time: 0, memory: 0 },

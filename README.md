@@ -1,0 +1,1 @@
+Weryfikacja koncepcji modułowej sprawdzaczki zadań programistycznych dla projektu [AlgoJudge](https://github.com/AlgoJudge)

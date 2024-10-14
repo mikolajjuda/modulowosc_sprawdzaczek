@@ -44,6 +44,7 @@ func judge(image string, submission map[string]interface{}) map[string]interface
 				NanoCPUs:   500000000,
 				PidsLimit:  &pids_limit,
 			},
+			NetworkMode: "none",
 		}, nil, nil, "")
 	if err != nil {
 		panic(err)

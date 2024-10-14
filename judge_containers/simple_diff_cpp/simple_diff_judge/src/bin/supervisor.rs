@@ -91,6 +91,7 @@ fn main() {
                 libc::SYS_exit_group,
                 libc::SYS_uname,
                 libc::SYS_readlink,
+                libc::SYS_fstat,
             ]);
             let filter: BpfProgram = SeccompFilter::new(
                 rules.into_iter().collect(),
